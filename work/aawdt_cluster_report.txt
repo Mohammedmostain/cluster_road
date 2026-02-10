@@ -1,0 +1,13 @@
+AAWDT vs Cluster Analysis
+========================
+
+Per-cluster statistics:
+         count          mean        median           std         min           max
+cluster                                                                           
+0          374   9344.647240   5368.303867   9257.089035  316.260848   42650.68773
+1          131  34490.298164  27868.861020  25455.526981  895.110264  111213.12040
+2          223  17204.951817  14872.362050  12640.496057  422.139661   76779.85569
+
+ANOVA p-value: 2.109976942404015e-54
+Kruskal-Wallis p-value: 1.4860086507539392e-40
+Effect size (eta squared): 0.2889
