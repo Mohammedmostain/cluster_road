@@ -1,0 +1,87 @@
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+pip-wheel-metadata/
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# =========================
+# Jupyter
+# =========================
+.ipynb_checkpoints/
+
+# =========================
+# IDE / Editor
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+# OS
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Large Generated Outputs
+# =========================
+
+# All intermediate outputs
+work/
+
+# If you ever commit a sample work file, remove this line
+# and instead ignore specific file types below.
+
+# Embeddings
+*.npy
+
+# Generated CSVs
+*kmeans_labels.csv
+*hdbscan_labels.csv
+*merged*.csv
+*k_sweep_summary.csv
+
+# Metrics and reports
+*kmeans_metrics.json
+*hdbscan_metrics.json
+*aawdt_cluster_report.txt
+*cluster_aawdt_report.txt
+
+# Plots
+*.png
+*.jpg
+*.jpeg
+*.pdf
+
+# =========================
+# Dataset
+# =========================
+
+# Raw image folders (too large for Git)
+data/zoom_in/
+data/zoom_out/
+
+# Traffic CSV (if large or private)
+traffic_data.csv
+road_labels.csv
+
+# =========================
+# CUDA / Torch caches
+# =========================
+*.pt
+*.pth
