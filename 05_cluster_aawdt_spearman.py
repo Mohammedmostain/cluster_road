@@ -1,9 +1,12 @@
+import re
+import json
 import pandas as pd
 import numpy as np
 from pathlib import Path
 from scipy.stats import spearmanr, f_oneway, kruskal
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score
 
 
 # =========================
@@ -12,18 +15,23 @@ import seaborn as sns
 WORK_DIR = Path("work")
 
 # Pick ONE at a time (or run twice with different values)
-METHOD = "hdbscan"   # "kmeans" or "hdbscan" or "dbscan"
+METHOD = "multimodal"   # "kmeans" or "hdbscan" or "dbscan" or "multimodal"
 
 CLUSTER_LABELS_PATH = {
-    "kmeans":  WORK_DIR / "kmeans_labels.csv",
-    "hdbscan": WORK_DIR / "hdbscan_labels.csv",
-    "dbscan":  WORK_DIR / "dbscan_labels.csv",   # if you have it
+    "kmeans":     WORK_DIR / "kmeans_labels.csv",
+    "hdbscan":    WORK_DIR / "hdbscan_labels.csv",
+    "dbscan":     WORK_DIR / "dbscan_labels.csv",
+    "multimodal": WORK_DIR / "multimodal_hdbscan" / "labels.csv",  # <-- default
 }[METHOD]
 
-TRAFFIC_CSV_PATH = Path("traffic_data.csv")  # <-- change if needed
+TRAFFIC_CSV_PATH = Path("traffic_data.csv")
 
 # Remove noise cluster -1 (common in DBSCAN/HDBSCAN)
-REMOVE_NOISE = METHOD in {"hdbscan", "dbscan"}
+REMOVE_NOISE = METHOD in {"hdbscan", "dbscan", "multimodal"}
+
+# If you want Road Class similarity metrics
+COMPUTE_ROADCLASS_ALIGNMENT = True
+ROAD_CLASS_COL = "Road Class"  # adjust if your column name differs
 
 # =========================
 # OUTPUTS (organized)
@@ -37,6 +45,26 @@ OUT_RANKMAP_CSV  = OUT_DIR / f"cluster_rank_map_{METHOD}.csv"
 OUT_REPORT_TXT   = OUT_DIR / f"cluster_aawdt_report_{METHOD}.txt"
 OUT_BOXPLOT      = OUT_DIR / f"aawdt_by_cluster_{METHOD}.png"
 OUT_SCATTER      = OUT_DIR / f"aawdt_vs_cluster_rank_{METHOD}.png"
+OUT_CROSSTAB_CSV = OUT_DIR / f"crosstab_cluster_vs_roadclass_{METHOD}.csv"
+OUT_ALIGNMENT_JSON = OUT_DIR / f"alignment_cluster_vs_roadclass_{METHOD}.json"
+
+
+# =========================
+# HELPERS
+# =========================
+def extract_id_from_filename(fn: str):
+    """
+    Extract the last integer appearing in the filename stem.
+    Examples:
+      '123.png' -> 123
+      'road_00123_zoom.png' -> 123
+      'abc.png' -> None
+    """
+    stem = Path(str(fn)).stem
+    nums = re.findall(r"\d+", stem)
+    if not nums:
+        return None
+    return int(nums[-1])
 
 
 def main():
@@ -48,8 +76,11 @@ def main():
     required_cluster_cols = {"filename", "cluster"}
     missing = required_cluster_cols - set(clusters.columns)
     if missing:
-        raise ValueError(f"Cluster labels file is missing columns: {missing}. "
-                         f"Expected at least {required_cluster_cols}")
+        raise ValueError(
+            f"Cluster labels file is missing columns: {missing}. "
+            f"Expected at least {required_cluster_cols}. "
+            f"Got columns: {list(clusters.columns)}"
+        )
 
     if "Estimation_point" not in traffic.columns:
         raise ValueError("Traffic CSV must contain an 'Estimation_point' column.")
@@ -57,19 +88,13 @@ def main():
         raise ValueError("Traffic CSV must contain an 'AAWDT' column.")
 
     # --- Normalize keys ---
-    clusters["Estimation_point"] = (
-        clusters["filename"]
-        .astype(str)
-        .str.replace(".png", "", regex=False)
-        .str.replace(".jpg", "", regex=False)
-        .str.replace(".jpeg", "", regex=False)
-    )
-
+    # Use robust regex extraction instead of assuming filename is numeric
+    clusters["Estimation_point"] = clusters["filename"].apply(extract_id_from_filename)
     clusters["Estimation_point"] = pd.to_numeric(clusters["Estimation_point"], errors="coerce")
     traffic["Estimation_point"] = pd.to_numeric(traffic["Estimation_point"], errors="coerce")
 
-    clusters = clusters.dropna(subset=["Estimation_point"])
-    traffic = traffic.dropna(subset=["Estimation_point"])
+    clusters = clusters.dropna(subset=["Estimation_point"]).copy()
+    traffic = traffic.dropna(subset=["Estimation_point"]).copy()
 
     clusters["Estimation_point"] = clusters["Estimation_point"].astype(int)
     traffic["Estimation_point"] = traffic["Estimation_point"].astype(int)
@@ -82,8 +107,8 @@ def main():
         how="inner"
     )
 
-    if REMOVE_NOISE and "cluster" in merged.columns:
-        merged = merged[merged["cluster"] != -1]
+    if REMOVE_NOISE:
+        merged = merged[merged["cluster"] != -1].copy()
 
     if merged.empty:
         raise RuntimeError(
@@ -132,9 +157,28 @@ def main():
 
     rho, rho_p = spearmanr(merged["cluster_rank"], merged["AAWDT"])
 
+    # --- Road Class alignment (ARI/NMI + crosstab) ---
+    alignment = None
+    if COMPUTE_ROADCLASS_ALIGNMENT:
+        if ROAD_CLASS_COL in merged.columns:
+            # ARI/NMI expects label arrays
+            ari = adjusted_rand_score(merged[ROAD_CLASS_COL].astype(str), merged["cluster"].astype(int))
+            nmi = normalized_mutual_info_score(merged[ROAD_CLASS_COL].astype(str), merged["cluster"].astype(int))
+
+            ctab = pd.crosstab(merged["cluster"], merged[ROAD_CLASS_COL])
+            ctab.to_csv(OUT_CROSSTAB_CSV)
+
+            alignment = {"ARI": float(ari), "NMI": float(nmi)}
+            with open(OUT_ALIGNMENT_JSON, "w", encoding="utf-8") as f:
+                json.dump(alignment, f, indent=2)
+        else:
+            alignment = {"error": f"Column '{ROAD_CLASS_COL}' not found in merged traffic data."}
+            with open(OUT_ALIGNMENT_JSON, "w", encoding="utf-8") as f:
+                json.dump(alignment, f, indent=2)
+
     # --- Report ---
     with open(OUT_REPORT_TXT, "w", encoding="utf-8") as f:
-        f.write(f"AAWDT vs Image Clusters ({METHOD.upper()})\n")
+        f.write(f"AAWDT vs Clusters ({METHOD.upper()})\n")
         f.write("================================\n\n")
 
         f.write(f"Cluster labels file: {CLUSTER_LABELS_PATH}\n")
@@ -160,14 +204,21 @@ def main():
 
         f.write("Spearman correlation (cluster_rank vs AAWDT):\n")
         f.write(f"  rho: {rho:.4f}\n")
-        f.write(f"  p-value: {rho_p:.6e}\n")
+        f.write(f"  p-value: {rho_p:.6e}\n\n")
+
+        if alignment is not None:
+            f.write("Alignment with Road Class:\n")
+            f.write(json.dumps(alignment, indent=2))
+            f.write("\n")
+            if (OUT_CROSSTAB_CSV.exists()):
+                f.write(f"\nCrosstab saved: {OUT_CROSSTAB_CSV}\n")
 
     # --- Plots ---
     sns.set_context("talk")
 
     plt.figure(figsize=(10, 6))
     sns.boxplot(data=merged, x="cluster", y="AAWDT")
-    plt.title(f"AAWDT Distribution by Image Cluster ({METHOD.upper()})")
+    plt.title(f"AAWDT Distribution by Cluster ({METHOD.upper()})")
     plt.xlabel("Cluster")
     plt.ylabel("AAWDT")
     plt.tight_layout()
@@ -201,6 +252,10 @@ def main():
     print(f"Eta^2={eta_sq:.4f}")
     if do_tests:
         print(f"ANOVA p={anova_res.pvalue:.3e}, Kruskal p={kruskal_res.pvalue:.3e}")
+
+    if alignment is not None and "ARI" in alignment:
+        print(f"\nAlignment vs Road Class: ARI={alignment['ARI']:.4f}, NMI={alignment['NMI']:.4f}")
+        print("Crosstab:", OUT_CROSSTAB_CSV)
 
 
 if __name__ == "__main__":
