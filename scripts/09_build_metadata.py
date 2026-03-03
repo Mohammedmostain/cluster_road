@@ -6,16 +6,18 @@ from pathlib import Path
 from sklearn.preprocessing import StandardScaler
 from sklearn.impute import SimpleImputer
 
-WORK_DIR = Path("work")
+ROOT = Path(__file__).resolve().parent.parent
+
+WORK_DIR = ROOT / "work"
 
 FN_PATH = WORK_DIR / "filenames.txt"
-TRAFFIC_CSV = Path("traffic_data.csv")
+TRAFFIC_CSV = ROOT / "data" / "traffic_data.csv"
 
 OUT_META_NPY = WORK_DIR / "metadata_features.npy"
 OUT_MASK_NPY = WORK_DIR / "metadata_match_mask.npy"
 OUT_INFO_JSON = WORK_DIR / "metadata_info.json"
 
-META_COLS = ["Speed", "Lanes"]
+META_COLS = ["Speed", "Lanes",'Lat',"Long"]  # columns to extract from traffic_data.csv as metadata features
 
 def extract_id_from_filename(fn: str):
     """

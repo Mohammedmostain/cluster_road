@@ -8,14 +8,15 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score
 
+ROOT = Path(__file__).resolve().parent.parent
 
 # =========================
 # CONFIG
 # =========================
-WORK_DIR = Path("work")
+WORK_DIR = ROOT / "work"
 
 # Pick ONE at a time (or run twice with different values)
-METHOD = "multimodal"   # "kmeans" or "hdbscan" or "dbscan" or "multimodal"
+METHOD = "hdbscan"   # "kmeans" or "hdbscan" or "dbscan" or "multimodal"
 
 CLUSTER_LABELS_PATH = {
     "kmeans":     WORK_DIR / "kmeans_labels.csv",
@@ -24,7 +25,7 @@ CLUSTER_LABELS_PATH = {
     "multimodal": WORK_DIR / "multimodal_hdbscan" / "labels.csv",  # <-- default
 }[METHOD]
 
-TRAFFIC_CSV_PATH = Path("traffic_data.csv")
+TRAFFIC_CSV_PATH = ROOT / "data" / "traffic_data.csv"
 
 # Remove noise cluster -1 (common in DBSCAN/HDBSCAN)
 REMOVE_NOISE = METHOD in {"hdbscan", "dbscan", "multimodal"}

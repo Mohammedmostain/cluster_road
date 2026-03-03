@@ -11,11 +11,12 @@ from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 
+ROOT = Path(__file__).resolve().parent.parent
 
 # =========================
 # CONFIG
 # =========================
-WORK_DIR = Path("work")
+WORK_DIR = ROOT / "work"
 
 EMB_PATH = WORK_DIR / "embeddings.npy"
 FN_PATH = WORK_DIR / "filenames.txt"

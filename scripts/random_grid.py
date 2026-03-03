@@ -1,6 +1,9 @@
 import os
 import random
+from pathlib import Path
 from PIL import Image
+
+ROOT = Path(__file__).resolve().parent.parent
 
 def create_random_grid(image_dir, output_path="grid_output.png"):
     # Get all image files from directory
@@ -41,5 +44,5 @@ def create_random_grid(image_dir, output_path="grid_output.png"):
 
 
 if __name__ == "__main__":
-    directory = 'work\clusters_kmeans\cluster_2\zoom_out'
-    create_random_grid(directory)
+    directory = ROOT / "work" / "clusters_kmeans" / "cluster_2" / "zoom_out"
+    create_random_grid(str(directory))

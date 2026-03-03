@@ -5,11 +5,13 @@ from scipy.stats import spearmanr, f_oneway, kruskal
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+ROOT = Path(__file__).resolve().parent.parent
+
 # =========================
 # CONFIG
 # =========================
-TRAFFIC_CSV_PATH = Path("traffic_data.csv")
-OUT_DIR = Path("work/road_class_analysis")
+TRAFFIC_CSV_PATH = ROOT / "data" / "traffic_data.csv"
+OUT_DIR = ROOT / "work" / "road_class_analysis"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 OUT_REPORT_TXT = OUT_DIR / "road_class_report.txt"

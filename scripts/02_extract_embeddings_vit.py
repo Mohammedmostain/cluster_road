@@ -11,12 +11,13 @@ from torchvision import transforms
 import timm
 from timm.models.vision_transformer import resize_pos_embed
 
+ROOT = Path(__file__).resolve().parent.parent
 
 # =========================
 # CONFIG
 # =========================
-MANIFEST_PATH = Path("work/pairs_manifest.csv")
-OUT_DIR = Path("work")
+MANIFEST_PATH = ROOT / "work" / "pairs_manifest.csv"
+OUT_DIR = ROOT / "work"
 
 BATCH_SIZE = 32
 NUM_WORKERS = 4

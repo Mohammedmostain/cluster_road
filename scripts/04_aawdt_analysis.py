@@ -5,14 +5,15 @@ import seaborn as sns
 from scipy import stats
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parent.parent
 
 # ===== CONFIG =====
-WORK_DIR = Path("work")
+WORK_DIR = ROOT / "work"
 
 CLUSTER_LABELS = WORK_DIR / "kmeans_labels.csv"
 
 # Replace with your actual CSV path
-TRAFFIC_CSV = Path("road_labels.csv")
+TRAFFIC_CSV = ROOT / "data" / "traffic_data.csv"
 
 OUTPUT_REPORT = WORK_DIR / "aawdt_cluster_report.txt"
 BOXPLOT_OUT = WORK_DIR / "aawdt_by_cluster.png"

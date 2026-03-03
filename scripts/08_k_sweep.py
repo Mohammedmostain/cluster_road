@@ -7,15 +7,16 @@ from sklearn.decomposition import PCA
 from scipy.stats import spearmanr, f_oneway
 import matplotlib.pyplot as plt
 
+ROOT = Path(__file__).resolve().parent.parent
 
 # =========================
 # CONFIG
 # =========================
-WORK_DIR = Path("work")
+WORK_DIR = ROOT / "work"
 
 EMB_PATH = WORK_DIR / "embeddings.npy"
 FN_PATH = WORK_DIR / "filenames.txt"
-TRAFFIC_CSV = Path("traffic_data.csv")   # <-- change if needed
+TRAFFIC_CSV = ROOT / "data" / "traffic_data.csv"
 
 K_VALUES = range(3, 13)   # K = 4 to 12
 

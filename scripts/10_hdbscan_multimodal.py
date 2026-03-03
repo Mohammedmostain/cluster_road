@@ -9,11 +9,12 @@ from sklearn.decomposition import PCA
 import umap
 import hdbscan
 
+ROOT = Path(__file__).resolve().parent.parent
 
 # =========================
 # CONFIG
 # =========================
-WORK_DIR = Path("work")
+WORK_DIR = ROOT / "work"
 
 EMB_PATH = WORK_DIR / "embeddings.npy"
 FN_PATH  = WORK_DIR / "filenames.txt"
@@ -29,7 +30,7 @@ OUT_LABELS  = OUT_DIR / "labels.csv"
 OUT_METRICS = OUT_DIR / "metrics.json"
 
 # ---- Preprocess for density clustering ----
-# For HDBSCAN, don’t keep hundreds of PCA dims (like 285); use fixed low dim.
+# For HDBSCAN, don't keep hundreds of PCA dims (like 285); use fixed low dim.
 DO_PCA = True
 PCA_N_COMPONENTS = 64
 

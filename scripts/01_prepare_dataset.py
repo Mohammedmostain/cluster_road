@@ -7,13 +7,15 @@ from typing import List, Tuple
 
 import numpy as np
 
+ROOT = Path(__file__).resolve().parent.parent
+
 # =========================
 # CONFIG
 # =========================
-ZOOM_IN_DIR  = Path("data/zoom_in")
-ZOOM_OUT_DIR = Path("data/zoom_out")
+ZOOM_IN_DIR  = ROOT / "data" / "zoom_in"
+ZOOM_OUT_DIR = ROOT / "data" / "zoom_out"
 
-OUT_DIR = Path("work")              # all intermediate outputs go here
+OUT_DIR = ROOT / "work"              # all intermediate outputs go here
 MANIFEST_PATH = OUT_DIR / "pairs_manifest.csv"
 PREVIEW_DIR = OUT_DIR / "previews_redmask"
 
